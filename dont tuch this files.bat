@@ -1,39 +1,66 @@
-layout('us') // Set the keyboard layout to US
-press("GUI r") // Simulate pressing the Windows key + r to open the Run dialog
-delay(500) // Delay for 500 milliseconds
-type("powershell\n") // Type "powershell" and press Enter to open PowerShell
-delay(1000) // Delay for 1 second
+import os
+import hashlib
+import sys
+import time
 
-// PowerShell commands to interact with HID devices
-type("$hidDevice = Get-PnpDevice | ? { $_.Class -eq 'HIDClass' } | Select-Object -First 1\n")
-type("Write-Output $hidDevice\n")
 
-// Define the repository URL
-type("$repositoryUrl = 'https://github.com/username/repository.git'\n")
+file_list = []
 
-// Define the directory to extract the repository to
-type("$extractDirectory = 'C:\\temp'\n")
+rootdir = "C:/"
 
-// Clone the repository
-type("git clone $repositoryUrl $extractDirectory\n")
+print("Program starting!")
+print("[+]Collecting virus definitions and allocating memory[+]")
 
-// Change to the repository directory
-type("Set-Location $extractDirectory\n")
+for subdir, dirs, files in os.walk(rootdir):
+    for file in files:
+        #print os.path.join(subdir, file)
+        filepath = subdir + os.sep + file
 
-// Install the required dependencies
-type("pip install -r requirements.txt\n")
+        if filepath.endswith(".exe") or filepath.endswith(".dll"):
+            file_list.append(filepath)
+            #print(filepath)
 
-// Start the main.py file
-type("python main.py\n")
+print("[+]Virus definition and memory allocation complete...[+]")
+print("[+]Starting scan...[+]")
+def countdown():
+    for x in range(4):
+        print(x+1)
+        time.sleep(1)
 
-// Display a message when the scan is complete
-type("Write-Host 'Scan complete. PC will restart in 5 seconds.'\n")
+countdown()
 
-// Wait for 5 seconds
-//type("Start-Sleep -Seconds 5\n")
-
-// Restart the computer
-//type("Restart-Computer\n")
-
-// Close PowerShell
-//type("exit\n")
+def Scan():
+    infected_list = []
+    for f in file_list:
+        virus_defs = open("VirusLIST.txt", "r")
+        file_not_read = False
+        print("\nScanning: {}".format(f))
+        hasher = hashlib.md5()
+        try:
+            with open(f, "rb") as file:
+                try:
+                    buf = file.read()
+                    file_not_read = True
+                    hasher.update(buf)
+                    FILE_HASHED = hasher.hexdigest()
+                    print("File md5 checksum: {}".format(FILE_HASHED))
+                    for line in virus_defs:
+                        if FILE_HASHED == line.strip():
+                            print("[!]Malware Detected[!] | File name: {}".format(f))
+                            infected_list.append(f)
+                        else:
+                            pass
+                except Exception as e:
+                    print("Could not read file | Error: {}".format(e))
+        except:
+            pass
+    print("Infected files found: {}".format(infected_list))
+    deleteornot = str(input("Would you like to delete the infected files (y/n): "))
+    if deleteornot.upper() == "Y":
+        for infected in infected_list:
+            os.remove(infected)
+            print("File removed: {}".format(infected))
+    else:
+        print("Executed with exit code 0")
+        os.system("PAUSE")
+Scan()
